@@ -1,23 +1,33 @@
-from django.contrib.auth.models import PermissionsMixin
 from django.db import models
-from django.contrib.auth.base_user import AbstractBaseUser
+from django.contrib.auth.models import AbstractBaseUser
 from .managers import MyUserManager
-# Create your models here.
 
-
-class MyUser(AbstractBaseUser, PermissionsMixin):
-    username = models.CharField(max_length=255, unique=True)
+class MyUser(AbstractBaseUser):
+    country_code = models.CharField(max_length=4)
+    phone_number = models.CharField(max_length=20, unique=True)
     email = models.EmailField(unique=True)
-    first_name = models.CharField(max_length=100)
-    last_name = models.CharField(max_length=100)
+    name = models.CharField(max_length=55, default='User', null=True)
     is_active = models.BooleanField(default=True)
-    is_staff = models.BooleanField(default=False)
-    date_joined = models.DateTimeField(auto_now_add=True)
+    is_admin = models.BooleanField(default=False)
+    is_superuser = models.BooleanField(default=False)
 
     objects = MyUserManager()
 
-    USERNAME_FIELD = 'username'
-    REQUIRED_FIELDS = 'email first_name last_name'.split()
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['country_code', 'phone_number']
 
     def __str__(self):
-        return self.username
+        return self.email
+
+    def full_phone_number(self):
+        return f"{self.country_code}{self.phone_number}"
+
+    def has_perm(self, perm, obj=None):
+        return True
+
+    def has_module_perms(self, app_label):
+        return True
+
+    @property
+    def is_staff(self):
+        return self.is_admin
